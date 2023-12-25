@@ -11,14 +11,14 @@ import (
 )
 
 type Template struct {
-	Id              uuid.UUID
-	HtmlTemplate    string `json:"html_template,omitempty"`
-	CreatedBy       string `json:"created_by,omitempty"`
-	TemplateName    string `json:"template_name,omitempty"`
-	NewTemplateName string `json:"new_template_name,omitempty"`
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       time.Time
+	Id              uuid.UUID `json:"uuid,omitempty"`
+	HtmlTemplate    string    `json:"html_template,omitempty"`
+	CreatedBy       string    `json:"created_by,omitempty"`
+	TemplateName    string    `json:"template_name,omitempty"`
+	NewTemplateName string    `json:"new_template_name,omitempty"`
+	CreatedAt       time.Time `json:"created_at,omitempty"`
+	UpdatedAt       time.Time `json:"updated_at,omitempty"`
+	DeletedAt       time.Time `json:"deleted_at,omitempty"`
 }
 
 // create template

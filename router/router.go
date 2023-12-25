@@ -35,6 +35,7 @@ func Routes() http.Handler {
 		r.Get("/getTemplateNames", controllers.GetTemplateNames)
 		r.Post("/updateTemplate", controllers.UpdateTemplate)
 		r.Delete("/deleteTemplate", controllers.DeleteTemplate)
+		r.Post("/generatePDF", controllers.GetPDF)
 	})
 
 	return router

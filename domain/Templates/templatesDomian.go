@@ -7,7 +7,6 @@ import (
 
 // create template
 func CreateTemplate(createdByEmailId, htmlTemplate, templateName string) (err error) {
-
 	query := `
 		INSERT INTO templates (created_by, html_template, template_name)
 		VALUES ($1, $2, $3)
@@ -27,7 +26,7 @@ func CreateTemplate(createdByEmailId, htmlTemplate, templateName string) (err er
 // get template
 func GetTemplateByName(emailID *string, templateName *string) (templateInfo *models.Template, err error) {
 	query := `
-        SELECT id, created_by, email_id, html_template, created_at, updated_at, deleted_at
+        SELECT id, created_by, html_template, created_at, updated_at, deleted_at
         FROM templates
         WHERE created_by = $1 AND template_name = $2
     `

@@ -9,12 +9,14 @@ import (
 	"fmt"
 	tModels "github.com/akashc777/csvToPdf/models/postgres/Templates"
 	"github.com/go-chi/chi/v5"
-	"github.com/jung-kurt/gofpdf"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
+	pdfCPUModel "github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"html/template"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	business "github.com/akashc777/csvToPdf/business/Templates"
 	"github.com/akashc777/csvToPdf/helpers"
 )
@@ -341,7 +343,16 @@ func GetPDF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, data := range dataList {
-		pdf := gofpdf.New("P", "mm", "A4", "")
+		pdfg, err := wkhtmltopdf.NewPDFGenerator()
+		if err != nil {
+			helpers.MessageLogs.ErrorLog.Printf(
+				"controllers/GetPDF failed to initialise new PDF generator err: %+v",
+				err)
+
+			er := errors.New("Error failed to initialise new PDF generator")
+			helpers.ErrorJSON(w, er, http.StatusBadRequest)
+			return
+		}
 
 		// Add data to PDF using the HTML template
 		var tplOutput strings.Builder
@@ -355,11 +366,18 @@ func GetPDF(w http.ResponseWriter, r *http.Request) {
 			helpers.ErrorJSON(w, er, http.StatusBadRequest)
 			return
 		}
-		pdf.AddPage()
-		pdf.RawWriteStr(tplOutput.String())
-		// Set password protection
-		password := data["pdf_password"]
-		pdf.SetProtection(gofpdf.CnProtectPrint, password, "")
+		page := wkhtmltopdf.NewPageReader(strings.NewReader(tplOutput.String()))
+		pdfg.AddPage(page)
+		err = pdfg.Create()
+		if err != nil {
+			helpers.MessageLogs.ErrorLog.Printf(
+				"controllers/GetPDF Error in generating PDF err: %+v",
+				err)
+
+			er := errors.New("Error in generating PDF")
+			helpers.ErrorJSON(w, er, http.StatusBadRequest)
+			return
+		}
 
 		// Add PDF file to the zip archive in memory
 		zipFile, err := zipWriter.Create(fmt.Sprintf("invoice_%d.pdf", i+1))
@@ -368,9 +386,14 @@ func GetPDF(w http.ResponseWriter, r *http.Request) {
 
 		}
 
-		err = pdf.Output(zipFile)
+		pdfcpuconnfig := pdfCPUModel.NewDefaultConfiguration()
+		pdfcpuconnfig.OwnerPW = data["pdf_password"]
+		pdfcpuconnfig.UserPW = data["pdf_password"]
+		pdfcpuconnfig.EncryptUsingAES = true
+		err = api.Encrypt(bytes.NewReader(pdfg.Bytes()), zipFile, pdfcpuconnfig)
+
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error writing PDF to zip: %s", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Error writing encrypted PDF to zip: %s", err), http.StatusInternalServerError)
 			return
 		}
 	}

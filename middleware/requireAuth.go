@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/akashc777/csvToPdf/helpers"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"os"
@@ -49,11 +48,7 @@ func VerifyAuth(next http.Handler) http.Handler {
 				return
 			}
 
-			userEmail, err := uuid.Parse(claims["email"].(string))
-			if err != nil {
-				log.Fatal(err)
-			}
-
+			userEmail := claims["email"].(string)
 			ctx := context.WithValue(r.Context(), helpers.UserEmailContextKey, userEmail)
 			r = r.WithContext(ctx)
 

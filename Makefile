@@ -29,7 +29,7 @@ migrate_down:
 
 build:
 	if [ -f "${BINARY}" ]; then \
-		rm ${BINARY}: \
+		rm ${BINARY}; \
 		echo "Deleted ${BINARY}"; \
 	fi
 	@echo "Building binary ..."
